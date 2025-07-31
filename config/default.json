@@ -1,4 +1,8 @@
 {
   "mongoURI": "mongodb+srv://Tanvi:Suchet%402011@devconnector.byuqcmh.mongodb.net/?retryWrites=true&w=majority&appName=DevConnector",
-  "jwtSecret": "mysecrettoken"
+  "jwtSecret": "mysecrettoken",
+  "githubClientId": "Ov23liDZsRUnYHW1OZdI",
+  "githubSecret": "cd8f53c43d78db823cf30a35bb38578e5f3973d9",
+  "githubToken": "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"
+
 }

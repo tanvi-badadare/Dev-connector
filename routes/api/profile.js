@@ -5,8 +5,8 @@ const router = express.Router();
 const auth = require('../../middleware/auth');
 const { check, validationResult } = require('express-validator');
 // bring in normalize to give us a proper url, regardless of what user entered
-const normalize = require('normalize-url');
-//const checkObjectId = require('../../middleware/checkObjectId');
+const normalize = require('normalize-url').default;
+const checkObjectId = require('../../middleware/checkObjectId');
 
 const Profile = require('../../models/Profile');
 const User = require('../../models/User');
@@ -31,7 +31,7 @@ router.get('/me', auth, async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
-/*
+
 // @route    POST api/profile
 // @desc     Create or update user profile
 // @access   Private
@@ -58,7 +58,7 @@ router.post(
       // spread the rest of the fields we don't need to check
       ...rest
     } = req.body;
-
+    
     // build a profile
     const profileFields = {
       user: req.user.id,
@@ -71,6 +71,8 @@ router.post(
         : skills.split(',').map((skill) => ' ' + skill.trim()),
       ...rest
     };
+
+
 
     // Build socialFields object
     const socialFields = { youtube, twitter, instagram, linkedin, facebook };
@@ -98,6 +100,7 @@ router.post(
   }
 );
 
+
 // @route    GET api/profile
 // @desc     Get all profiles
 // @access   Public
@@ -110,6 +113,7 @@ router.get('/', async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
+
 
 // @route    GET api/profile/user/:user_id
 // @desc     Get profile by user ID
@@ -133,6 +137,7 @@ router.get(
   }
 );
 
+
 // @route    DELETE api/profile
 // @desc     Delete profile, user & posts
 // @access   Private
@@ -142,7 +147,7 @@ router.delete('/', auth, async (req, res) => {
     // Remove profile
     // Remove user
     await Promise.all([
-      Post.deleteMany({ user: req.user.id }),
+      //Post.deleteMany({ user: req.user.id }),
       Profile.findOneAndRemove({ user: req.user.id }),
       User.findOneAndRemove({ _id: req.user.id })
     ]);
@@ -153,6 +158,7 @@ router.delete('/', auth, async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
+
 
 // @route    PUT api/profile/experience
 // @desc     Add profile experience
@@ -276,7 +282,33 @@ router.get('/github/:username', async (req, res) => {
     console.error(err.message);
     return res.status(404).json({ msg: 'No Github profile found' });
   }
+  
+  /*
+  try {
+  const options = {
+    uri: `https://api.github.com/users/${req.params.username}/repos?per_page=5&sort=created:asc&client_id=${config.get('githubClientId')}&client_secret=${config.get('githubSecret')}`,
+    method: 'GET',
+    headers: { 'user-agent': 'node.js' }
+  };
+
+  request(options, (error, response, body) => {
+    if (error) {
+      return console.error(error);
+    }
+
+    if (response.statusCode !== 200) {
+      return res.status(404).json({ msg: 'No Github profile found' });
+    }
+
+    // If everything's okay, send the body
+    return res.json(JSON.parse(body));
+  });
+} catch (err) {
+  return console.error(err.message);
+}
+  */
+
 });
-*/
+
 
 module.exports = router;
