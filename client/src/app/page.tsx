@@ -33,7 +33,12 @@ export default function Home() {
         const response = await api.get('/posts');
         setPosts(response.data);
       } catch (err: any) {
-        setError('Failed to load posts');
+        // If unauthorized, just show empty state instead of error
+        if (err.response?.status === 401) {
+          setPosts([]);
+        } else {
+          setError('Failed to load posts');
+        }
       } finally {
         setLoading(false);
       }
@@ -56,7 +61,7 @@ export default function Home() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-800 mb-8">Dev Connector</h1>
-            <p className="text-red-600 text-lg mb-8">{error}</p>
+            <p className="text-gray-600 text-lg mb-8">Welcome to the developer community!</p>
             <div className="flex justify-center space-x-4">
               <a
                 href="/login"
