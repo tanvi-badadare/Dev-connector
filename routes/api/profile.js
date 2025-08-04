@@ -10,7 +10,7 @@ const checkObjectId = require('../../middleware/checkObjectId');
 
 const Profile = require('../../models/Profile');
 const User = require('../../models/User');
-//const Post = require('../../models/Post');
+const Post = require('../../models/Post');
 
 // @route    GET api/profile/me
 // @desc     Get current users profile
@@ -147,7 +147,7 @@ router.delete('/', auth, async (req, res) => {
     // Remove profile
     // Remove user
     await Promise.all([
-      //Post.deleteMany({ user: req.user.id }),
+      Post.deleteMany({ user: req.user.id }),
       Profile.findOneAndRemove({ user: req.user.id }),
       User.findOneAndRemove({ _id: req.user.id })
     ]);
