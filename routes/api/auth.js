@@ -1,10 +1,12 @@
-const express = require('express');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import auth from '../../middleware/auth.js';
+import { validate } from '../../middleware/validate.js';
+import { userLoginSchema } from '../../validation/schemas.js';
+import User from '../../models/User.js';
+
 const router = express.Router();
-const bcrypt = require('bcryptjs')
-const auth = require('../../middleware/auth');
-const jwt = require('jsonwebtoken');
-const config = require('config');
-const { check, validationResult} = require('express-validator')
 
 
 // @eoute GET api/auth
@@ -25,18 +27,8 @@ router.get('/', auth, async(req,res) => {
 // @desc Authenticate user and get token
 // @access Public
 
-router.post('/',
-[
-    check('email', 'Please include a valid email').isEmail(),
-    check('password', 'Password is required').exists()
-],
-async (req,res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        return res.status(400).json({errors: errors.array()});
-    }
-
-    const {email, password} = req.body;
+router.post('/', validate(userLoginSchema), async (req, res) => {
+    const { email, password } = req.validatedData;
 
     try{
         let user = await User.findOne({email});
@@ -59,7 +51,7 @@ async (req,res) => {
         
         jwt.sign(
             payload, 
-            config.get('jwtSecret'),
+            process.env.JWT_SECRET,
             {expiresIn: 360000}, 
             (err,token)=>{
             if(err) throw err;
@@ -76,4 +68,4 @@ async (req,res) => {
   }  
 );
 
-module.exports = router; 
+export default router; 

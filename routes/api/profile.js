@@ -1,16 +1,15 @@
-const express = require('express');
-const axios = require('axios');
-const config = require('config');
-const router = express.Router();
-const auth = require('../../middleware/auth');
-const { check, validationResult } = require('express-validator');
-// bring in normalize to give us a proper url, regardless of what user entered
-const normalize = require('normalize-url').default;
-const checkObjectId = require('../../middleware/checkObjectId');
+import express from 'express';
+import axios from 'axios';
+import normalize from 'normalize-url';
+import auth from '../../middleware/auth.js';
+import { validate } from '../../middleware/validate.js';
+import { profileSchema, experienceSchema, educationSchema } from '../../validation/schemas.js';
+import checkObjectId from '../../middleware/checkObjectId.js';
+import Profile from '../../models/Profile.js';
+import User from '../../models/User.js';
+import Post from '../../models/Post.js';
 
-const Profile = require('../../models/Profile');
-const User = require('../../models/User');
-const Post = require('../../models/Post');
+const router = express.Router();
 
 // @route    GET api/profile/me
 // @desc     Get current users profile
@@ -35,18 +34,8 @@ router.get('/me', auth, async (req, res) => {
 // @route    POST api/profile
 // @desc     Create or update user profile
 // @access   Private
-router.post(
-  '/',
-  auth,
-  check('status', 'Status is required').notEmpty(),
-  check('skills', 'Skills is required').notEmpty(),
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    // destructure the request
+router.post('/', auth, validate(profileSchema), async (req, res) => {
+    // destructure the validated request
     const {
       website,
       skills,
@@ -57,7 +46,7 @@ router.post(
       facebook,
       // spread the rest of the fields we don't need to check
       ...rest
-    } = req.body;
+    } = req.validatedData;
     
     // build a profile
     const profileFields = {
@@ -68,7 +57,7 @@ router.post(
           : '',
       skills: Array.isArray(skills)
         ? skills
-        : skills.split(',').map((skill) => ' ' + skill.trim()),
+        : skills.split(',').map((skill) => skill.trim()),
       ...rest
     };
 
@@ -163,24 +152,11 @@ router.delete('/', auth, async (req, res) => {
 // @route    PUT api/profile/experience
 // @desc     Add profile experience
 // @access   Private
-router.put(
-  '/experience',
-  auth,
-  check('title', 'Title is required').notEmpty(),
-  check('company', 'Company is required').notEmpty(),
-  check('from', 'From date is required and needs to be from the past')
-    .notEmpty()
-    .custom((value, { req }) => (req.body.to ? value < req.body.to : true)),
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
+router.put('/experience', auth, validate(experienceSchema), async (req, res) => {
     try {
       const profile = await Profile.findOne({ user: req.user.id });
 
-      profile.experience.unshift(req.body);
+      profile.experience.unshift(req.validatedData);
 
       await profile.save();
 
@@ -215,25 +191,11 @@ router.delete('/experience/:exp_id', auth, async (req, res) => {
 // @route    PUT api/profile/education
 // @desc     Add profile education
 // @access   Private
-router.put(
-  '/education',
-  auth,
-  check('school', 'School is required').notEmpty(),
-  check('degree', 'Degree is required').notEmpty(),
-  check('fieldofstudy', 'Field of study is required').notEmpty(),
-  check('from', 'From date is required and needs to be from the past')
-    .notEmpty()
-    .custom((value, { req }) => (req.body.to ? value < req.body.to : true)),
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
+router.put('/education', auth, validate(educationSchema), async (req, res) => {
     try {
       const profile = await Profile.findOne({ user: req.user.id });
 
-      profile.education.unshift(req.body);
+      profile.education.unshift(req.validatedData);
 
       await profile.save();
 
@@ -273,7 +235,7 @@ router.get('/github/:username', async (req, res) => {
     );
     const headers = {
       'user-agent': 'node.js',
-      Authorization: `token ${config.get('githubToken')}`
+      Authorization: `token ${process.env.GITHUB_TOKEN}`
     };
 
     const gitHubResponse = await axios.get(uri, { headers });
@@ -286,7 +248,7 @@ router.get('/github/:username', async (req, res) => {
   /*
   try {
   const options = {
-    uri: `https://api.github.com/users/${req.params.username}/repos?per_page=5&sort=created:asc&client_id=${config.get('githubClientId')}&client_secret=${config.get('githubSecret')}`,
+    uri: `https://api.github.com/users/${req.params.username}/repos?per_page=5&sort=created:asc&client_id=${process.env.GITHUB_CLIENT_ID}&client_secret=${process.env.GITHUB_SECRET}`,
     method: 'GET',
     headers: { 'user-agent': 'node.js' }
   };
@@ -311,4 +273,4 @@ router.get('/github/:username', async (req, res) => {
 });
 
 
-module.exports = router;
+export default router;

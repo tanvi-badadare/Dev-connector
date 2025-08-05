@@ -1,29 +1,18 @@
-const express = require('express');
-const router = express.Router();
-const gravatar = require('gravatar');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const config = require('config');
-const { check, validationResult} = require('express-validator')
+import express from 'express';
+import gravatar from 'gravatar';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { validate } from '../../middleware/validate.js';
+import { userRegisterSchema } from '../../validation/schemas.js';
+import User from '../../models/User.js';
 
-const User = require('../../models/User');
+const router = express.Router();
 // @eoute POST api/users
 // @desc Register user
 // @access Public
 
-router.post('/',
-[
-    check('name', 'Name is required').not().isEmpty(),
-    check('email', 'Please include a valid email').isEmail(),
-    check('password', 'Please enter a password with 6 or more characters').isLength({min: 6})
-],
-async (req,res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        return res.status(400).json({errors: errors.array()});
-    }
-
-    const {name, email, password} = req.body;
+router.post('/', validate(userRegisterSchema), async (req, res) => {
+    const { name, email, password } = req.validatedData;
 
     try{
         let user = await User.findOne({email});
@@ -60,7 +49,7 @@ async (req,res) => {
         
         jwt.sign(
             payload, 
-            config.get('jwtSecret'),
+            process.env.JWT_SECRET,
             {expiresIn: 360000}, 
             (err,token)=>{
             if(err) throw err;
@@ -77,5 +66,5 @@ async (req,res) => {
   }  
 );
 
-module.exports = router; 
+export default router; 
 

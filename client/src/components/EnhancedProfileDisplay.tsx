@@ -90,16 +90,8 @@ export default function EnhancedProfileDisplay({ profile, isOwnProfile = false }
       console.log('GitHub repos response:', response.data);
       setGithubRepos(response.data);
     } catch (err: any) {
-      console.error('Failed to fetch GitHub repos:', err);
-      console.error('Error details:', {
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data,
-        url: err.config?.url,
-        message: err.message,
-        code: err.code
-      });
-      // Don't show error to user, just log it
+      console.log('GitHub repos not available for username:', profile.githubusername);
+      // Silently handle the error - don't log detailed error info
       setGithubRepos([]);
     } finally {
       setLoadingRepos(false);
@@ -213,24 +205,34 @@ export default function EnhancedProfileDisplay({ profile, isOwnProfile = false }
         {profile.social && Object.values(profile.social).some(social => social) && (
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Social Links</h3>
-            <div className="flex space-x-4">
+            <div className="flex flex-wrap gap-3">
               {profile.social.youtube && (
-                <a href={profile.social.youtube} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-800">
+                <a href={profile.social.youtube} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-800 font-medium">
                   YouTube
                 </a>
               )}
               {profile.social.twitter && (
-                <a href={profile.social.twitter} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-600">
+                <a href={profile.social.twitter} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-600 font-medium">
                   Twitter
                 </a>
               )}
+              {profile.social.facebook && (
+                <a href={profile.social.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 font-medium">
+                  Facebook
+                </a>
+              )}
               {profile.social.linkedin && (
-                <a href={profile.social.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:text-blue-900">
+                <a href={profile.social.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:text-blue-900 font-medium">
                   LinkedIn
                 </a>
               )}
+              {profile.social.instagram && (
+                <a href={profile.social.instagram} target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-pink-800 font-medium">
+                  Instagram
+                </a>
+              )}
               {profile.githubusername && (
-                <a href={`https://github.com/${profile.githubusername}`} target="_blank" rel="noopener noreferrer" className="text-gray-800 hover:text-gray-600">
+                <a href={`https://github.com/${profile.githubusername}`} target="_blank" rel="noopener noreferrer" className="text-gray-800 hover:text-gray-600 font-medium">
                   GitHub
                 </a>
               )}
@@ -352,7 +354,7 @@ export default function EnhancedProfileDisplay({ profile, isOwnProfile = false }
       </div>
 
       {/* GitHub Repositories Section */}
-      {profile.githubusername && (
+      {profile.githubusername && profile.githubusername.trim() !== '' && profile.githubusername !== 'your-github-username' && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h3 className="text-xl font-semibold text-gray-900 mb-4">GitHub Repositories</h3>
           
@@ -387,7 +389,7 @@ export default function EnhancedProfileDisplay({ profile, isOwnProfile = false }
             </div>
           ) : (
             <p className="text-gray-500">
-              {profile.githubusername ? 'No repositories found or GitHub username may be invalid' : 'Add your GitHub username to see your repositories'}
+              No repositories found for this GitHub username
             </p>
           )}
         </div>
