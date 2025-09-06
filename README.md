@@ -1,6 +1,10 @@
 # Dev Connector
 
 A full-stack MERN application for developers to connect, share posts, and showcase their profiles.
+# My First MERN Project
+
+This is my first MERN stack project. I followed a Udemy tutorial to build it and learned how to integrate React, Node.js, Express, and MongoDB.
+
 
 ## Environment Setup
 
